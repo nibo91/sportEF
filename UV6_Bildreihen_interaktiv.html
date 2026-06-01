@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UV 6 – Bildreihen: Speerwurf | Dreisprung | Hürdenlauf</title>
+<style>
+  :root {
+    --blue: #1F4E79; --green: #375623; --red: #833C00;
+    --blue-l: #DEEAF1; --green-l: #E2EFDA; --red-l: #FCE4D6;
+    --bg: #ffffff; --bg2: #f5f5f5; --txt: #1a1a1a; --txt2: #555;
+    --bd: #ddd; --radius: 8px; --font: system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #1a1a1a; --bg2: #262626; --txt: #e8e8e8; --txt2: #aaa; --bd: #444; }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--bg); color: var(--txt); padding: 20px; max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 22px; font-weight: 500; margin-bottom: 4px; }
+  .subtitle { font-size: 14px; color: var(--txt2); margin-bottom: 20px; }
+  .header-bar { display: flex; align-items: baseline; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid var(--bd); padding-bottom: 12px; }
+  .badge { font-size: 11px; padding: 3px 8px; border-radius: 20px; background: var(--bg2); color: var(--txt2); border: 1px solid var(--bd); }
+
+  .disziplin-tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+  .tab-btn { flex: 1; padding: 10px; border: 1px solid var(--bd); background: var(--bg2); border-radius: var(--radius); font-size: 14px; font-weight: 500; cursor: pointer; color: var(--txt2); transition: all 0.15s; }
+  .tab-btn.active { color: #fff; border-color: transparent; }
+  .tab-btn.speer.active { background: var(--blue); }
+  .tab-btn.drei.active { background: var(--green); }
+  .tab-btn.hrd.active { background: var(--red); }
+
+  .disziplin-panel { display: none; }
+  .disziplin-panel.active { display: block; }
+
+  .phase-strip { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 12px; }
+  .phase-btn { padding: 5px 12px; font-size: 12px; border-radius: 20px; border: 1px solid var(--bd); background: var(--bg2); cursor: pointer; color: var(--txt2); transition: all 0.15s; }
+  .phase-btn.active { color: #fff; border-color: transparent; }
+  .speer .phase-btn.active { background: var(--blue); }
+  .drei .phase-btn.active { background: var(--green); }
+  .hrd .phase-btn.active { background: var(--red); }
+
+  .animation-area { background: var(--bg2); border-radius: 12px; border: 1px solid var(--bd); overflow: hidden; margin-bottom: 12px; }
+  .progress-bar { height: 3px; background: var(--bd); }
+  .progress-fill { height: 100%; transition: width 0.2s; }
+  .speer .progress-fill { background: var(--blue); }
+  .drei .progress-fill { background: var(--green); }
+  .hrd .progress-fill { background: var(--red); }
+  .anim-svg { width: 100%; display: block; }
+  .play-controls { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-top: 1px solid var(--bd); background: var(--bg); }
+  .play-btn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--bd); background: var(--bg2); cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+  .play-btn:hover { background: var(--bd); }
+  .phase-label { font-size: 13px; color: var(--txt2); flex: 1; }
+  .speed-control { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--txt2); }
+  .speed-control input { width: 80px; }
+
+  .info-box { background: var(--bg); border: 1px solid var(--bd); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; }
+  .info-title { font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+  .merkmale { list-style: none; }
+  .merkmale li { font-size: 13px; color: var(--txt2); padding: 3px 0; }
+  .merkmale li::before { content: "✓ "; color: #22863a; font-weight: 500; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .box { background: var(--bg); border: 1px solid var(--bd); border-radius: var(--radius); padding: 12px 14px; }
+  .box-title { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; color: var(--txt2); margin-bottom: 10px; }
+  .gelaende-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .g-item { background: var(--bg2); border-radius: 6px; padding: 8px; font-size: 12px; text-align: center; border: 1px solid var(--bd); line-height: 1.3; }
+  .g-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+
+  .lw-toggle { display: flex; gap: 6px; margin-bottom: 8px; }
+  .lw-btn { padding: 5px 12px; font-size: 12px; border-radius: 20px; border: 1px solid var(--bd); cursor: pointer; background: var(--bg2); color: var(--txt2); }
+  .lw-btn.active-g { background: var(--green-l); color: var(--green); border-color: var(--green); }
+  .lw-btn.active-a { background: var(--blue-l); color: var(--blue); border-color: var(--blue); }
+  .lw-info { font-size: 13px; color: var(--txt2); padding: 10px 12px; background: var(--bg2); border-radius: var(--radius); line-height: 1.5; }
+
+  .print-note { font-size: 12px; color: var(--txt2); background: var(--bg2); border: 1px solid var(--bd); border-radius: var(--radius); padding: 10px 14px; margin-top: 20px; }
+  @media print {
+    .disziplin-tabs, .phase-strip, .play-controls, .lw-toggle, .print-note { display: none !important; }
+    .disziplin-panel { display: block !important; page-break-after: always; }
+    body { padding: 0; max-width: 100%; }
+  }
+  @media (max-width: 600px) {
+    .two-col { grid-template-columns: 1fr; }
+    .gelaende-grid { grid-template-columns: 1fr 1fr; }
+    .disziplin-tabs { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header-bar">
+  <h1>Bildreihen – UV 6 Leichtathletik</h1>
+  <span class="badge">EF | BF/SB 3</span>
+  <span class="badge">Offline-fähig</span>
+</div>
+
+<div class="disziplin-tabs">
+  <button class="tab-btn speer active" onclick="switchDisziplin('speer')">Speerwurf</button>
+  <button class="tab-btn drei" onclick="switchDisziplin('drei')">Dreisprung</button>
+  <button class="tab-btn hrd" onclick="switchDisziplin('hrd')">Hürdenlauf</button>
+</div>
+
+<!-- SPEERWURF -->
+<div id="panel-speer" class="disziplin-panel speer active">
+  <div class="phase-strip">
+    <button class="phase-btn active" onclick="setPhase('speer',0)">1. Griff &amp; Haltung</button>
+    <button class="phase-btn" onclick="setPhase('speer',1)">2. Anlauf</button>
+    <button class="phase-btn" onclick="setPhase('speer',2)">3. Bogenspannung</button>
+    <button class="phase-btn" onclick="setPhase('speer',3)">4. Abwurf</button>
+    <button class="phase-btn" onclick="setPhase('speer',4)">5. Abbremsung</button>
+  </div>
+  <div class="animation-area">
+    <div class="progress-bar"><div class="progress-fill speer" id="prog-speer" style="width:20%"></div></div>
+    <svg class="anim-svg" viewBox="0 0 800 240" id="svg-speer" aria-label="Bildreihe Speerwurf">
+      <line x1="20" y1="210" x2="780" y2="210" stroke="#ddd" stroke-width="1.5"/>
+      <text x="400" y="22" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" fill="#888" id="speer-phase-label">Phase 1: Griff und Haltung</text>
+      <g id="speer-fig"></g>
+      <g id="speer-anno"></g>
+    </svg>
+    <div class="play-controls">
+      <button class="play-btn" id="btn-speer" onclick="togglePlay('speer')" aria-label="Abspielen/Pausieren">&#9654;</button>
+      <span class="phase-label" id="lbl-speer">Phase 1 von 5</span>
+      <div class="speed-control">
+        <label for="speed-speer">Tempo</label>
+        <input type="range" id="speed-speer" min="1" max="5" value="2" step="1" oninput="setSpeed('speer',this.value)">
+      </div>
+    </div>
+  </div>
+  <div class="info-box">
+    <div class="info-title" id="info-title-speer">Griff und Haltung</div>
+    <ul class="merkmale" id="info-merkmale-speer"></ul>
+  </div>
+  <div class="two-col">
+    <div class="box">
+      <div class="box-title">Geländehilfen</div>
+      <div class="gelaende-grid">
+        <div class="g-item"><span class="g-icon">📏</span>Abwurflinie mit Absperrband</div>
+        <div class="g-item"><span class="g-icon">🦶</span>Fußspuren für Impulsschritt</div>
+        <div class="g-item"><span class="g-icon">🎯</span>Zielzone mit Kreide/Kegel</div>
+        <div class="g-item"><span class="g-icon">🖼️</span>Bildreihe am Stander</div>
+        <div class="g-item"><span class="g-icon">🔔</span>Klatschen beim Abwurf</div>
+        <div class="g-item"><span class="g-icon">🪄</span>Softspeer als Einstieg</div>
+      </div>
+    </div>
+    <div class="box">
+      <div class="box-title">Lernweg</div>
+      <div class="lw-toggle">
+        <button class="lw-btn active-g" onclick="setLernweg('speer','g',this)">Ganzheitsmethode</button>
+        <button class="lw-btn" onclick="setLernweg('speer','a',this)">Analytisch</button>
+      </div>
+      <div class="lw-info" id="lw-speer">Stehender Wurf → 3-Schritt-Anlauf → vollständiger Anlauf. Fokus auf Gesamtrhythmus, erst nach 10+ Versuchen Korrekturen einbauen.</div>
+    </div>
+  </div>
+</div>
+
+<!-- DREISPRUNG -->
+<div id="panel-drei" class="disziplin-panel drei">
+  <div class="phase-strip">
+    <button class="phase-btn active" onclick="setPhase('drei',0)">1. Anlauf</button>
+    <button class="phase-btn" onclick="setPhase('drei',1)">2. Hop</button>
+    <button class="phase-btn" onclick="setPhase('drei',2)">3. Step</button>
+    <button class="phase-btn" onclick="setPhase('drei',3)">4. Jump</button>
+    <button class="phase-btn" onclick="setPhase('drei',4)">5. Landung</button>
+  </div>
+  <div class="animation-area">
+    <div class="progress-bar"><div class="progress-fill drei" id="prog-drei" style="width:20%"></div></div>
+    <svg class="anim-svg" viewBox="0 0 800 240" id="svg-drei" aria-label="Bildreihe Dreisprung">
+      <line x1="20" y1="210" x2="780" y2="210" stroke="#ddd" stroke-width="1.5"/>
+      <rect x="630" y="205" width="130" height="8" rx="2" fill="#D4B483" opacity="0.6"/>
+      <text x="695" y="228" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" fill="#888">Sandbett</text>
+      <text x="400" y="22" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" fill="#888" id="drei-phase-label">Phase 1: Anlauf</text>
+      <g id="drei-fig"></g>
+      <g id="drei-anno"></g>
+    </svg>
+    <div class="play-controls">
+      <button class="play-btn" id="btn-drei" onclick="togglePlay('drei')" aria-label="Abspielen/Pausieren">&#9654;</button>
+      <span class="phase-label" id="lbl-drei">Phase 1 von 5</span>
+      <div class="speed-control">
+        <label for="speed-drei">Tempo</label>
+        <input type="range" id="speed-drei" min="1" max="5" value="2" step="1" oninput="setSpeed('drei',this.value)">
+      </div>
+    </div>
+  </div>
+  <div class="info-box">
+    <div class="info-title" id="info-title-drei">Anlauf</div>
+    <ul class="merkmale" id="info-merkmale-drei"></ul>
+  </div>
+  <div class="two-col">
+    <div class="box">
+      <div class="box-title">Geländehilfen</div>
+      <div class="gelaende-grid">
+        <div class="g-item"><span class="g-icon">1️⃣</span>Absprungbalken markieren</div>
+        <div class="g-item"><span class="g-icon">🔴🟡🟢</span>Farbige Landezonen Hop/Step/Jump</div>
+        <div class="g-item"><span class="g-icon">🎶</span>Laut zählen: Hop-Step-Jump</div>
+        <div class="g-item"><span class="g-icon">🪨</span>Hütchen als Orientierung</div>
+        <div class="g-item"><span class="g-icon">✋</span>Partner klatscht beim Absprung</div>
+        <div class="g-item"><span class="g-icon">📐</span>Weite jeder Phase messen</div>
+      </div>
+    </div>
+    <div class="box">
+      <div class="box-title">Lernweg</div>
+      <div class="lw-toggle">
+        <button class="lw-btn active-g" onclick="setLernweg('drei','g',this)">Ganzheitsmethode</button>
+        <button class="lw-btn" onclick="setLernweg('drei','a',this)">Analytisch</button>
+      </div>
+      <div class="lw-info" id="lw-drei">Hop-Step-Jump aus dem Stand ohne Anlauf → 3-Schritt-Anlauf → voller Anlauf. Beim ersten Versuch: Rhythmus zählen, nicht auf Weite achten.</div>
+    </div>
+  </div>
+</div>
+
+<!-- HÜRDENLAUF -->
+<div id="panel-hrd" class="disziplin-panel hrd">
+  <div class="phase-strip">
+    <button class="phase-btn active" onclick="setPhase('hrd',0)">1. Zwischenlauf</button>
+    <button class="phase-btn" onclick="setPhase('hrd',1)">2. Absprung</button>
+    <button class="phase-btn" onclick="setPhase('hrd',2)">3. Führungsbein</button>
+    <button class="phase-btn" onclick="setPhase('hrd',3)">4. Nachziehbein</button>
+    <button class="phase-btn" onclick="setPhase('hrd',4)">5. Landung &amp; weiter</button>
+  </div>
+  <div class="animation-area">
+    <div class="progress-bar"><div class="progress-fill hrd" id="prog-hrd" style="width:20%"></div></div>
+    <svg class="anim-svg" viewBox="0 0 800 240" id="svg-hrd" aria-label="Bildreihe Hürdenlauf">
+      <line x1="20" y1="210" x2="780" y2="210" stroke="#ddd" stroke-width="1.5"/>
+      <rect x="295" y="168" width="34" height="4" rx="1" fill="#833C00" opacity="0.9"/>
+      <rect x="295" y="168" width="3" height="42" fill="#833C00" opacity="0.7"/>
+      <rect x="326" y="168" width="3" height="42" fill="#833C00" opacity="0.7"/>
+      <text x="313" y="228" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#888">Hürde 1</text>
+      <rect x="570" y="168" width="34" height="4" rx="1" fill="#833C00" opacity="0.5"/>
+      <rect x="570" y="168" width="3" height="42" fill="#833C00" opacity="0.4"/>
+      <rect x="601" y="168" width="3" height="42" fill="#833C00" opacity="0.4"/>
+      <text x="588" y="228" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#aaa">Hürde 2</text>
+      <text x="400" y="22" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" fill="#888" id="hrd-phase-label">Phase 1: Zwischenlauf</text>
+      <g id="hrd-fig"></g>
+      <g id="hrd-anno"></g>
+    </svg>
+    <div class="play-controls">
+      <button class="play-btn" id="btn-hrd" onclick="togglePlay('hrd')" aria-label="Abspielen/Pausieren">&#9654;</button>
+      <span class="phase-label" id="lbl-hrd">Phase 1 von 5</span>
+      <div class="speed-control">
+        <label for="speed-hrd">Tempo</label>
+        <input type="range" id="speed-hrd" min="1" max="5" value="2" step="1" oninput="setSpeed('hrd',this.value)">
+      </div>
+    </div>
+  </div>
+  <div class="info-box">
+    <div class="info-title" id="info-title-hrd">Zwischenlauf</div>
+    <ul class="merkmale" id="info-merkmale-hrd"></ul>
+  </div>
+  <div class="two-col">
+    <div class="box">
+      <div class="box-title">Geländehilfen</div>
+      <div class="gelaende-grid">
+        <div class="g-item"><span class="g-icon">↕️</span>Hürdenhöhe stufenweise erhöhen</div>
+        <div class="g-item"><span class="g-icon">🦵</span>Gummiband statt Hürde (fällt ohne Strafe)</div>
+        <div class="g-item"><span class="g-icon">🔢</span>Schritte laut mitzählen</div>
+        <div class="g-item"><span class="g-icon">📍</span>Absprungmarkierung 1,5–2 m</div>
+        <div class="g-item"><span class="g-icon">🤝</span>Partner beobachtet Nachziehbein</div>
+        <div class="g-item"><span class="g-icon">🖼️</span>Bildreihe Nachziehbein neben Bahn</div>
+      </div>
+    </div>
+    <div class="box">
+      <div class="box-title">Lernweg</div>
+      <div class="lw-toggle">
+        <button class="lw-btn active-g" onclick="setLernweg('hrd','g',this)">Ganzheitsmethode</button>
+        <button class="lw-btn" onclick="setLernweg('hrd','a',this)">Analytisch</button>
+      </div>
+      <div class="lw-info" id="lw-hrd">1 Hürde → 2 Hürden → 3–5 Hürden. Beim ersten Durchgang nur auf den Gesamtrhythmus achten, Einzelkorrekturen erst ab 2. Runde.</div>
+    </div>
+  </div>
+</div>
+
+<div class="print-note">
+  <strong>Ausdruck:</strong> Datei → Drucken → alle Seiten. Jede Disziplin erscheint auf einer eigenen Seite. Für laminierte Stationskarten: einzeln als PDF speichern.
+</div>
+
+<script>
+const DATA = {
+  speer: {
+    phases: [
+      { label:"Griff und Haltung", merkmale:["Zangengriff hinter dem Wickel, Daumen + Zeigefinger","Handgelenk leicht überstreckt (dorsalflektiert)","Speer auf Ohrenhöhe, Spitze 5–10° nach unten","Ellenbogen zeigt nach außen und leicht oben"] },
+      { label:"Anlauf (5–7 Schritte)", merkmale:["Rhythmischer, progressiv beschleunigender Anlauf","Körper bleibt aufrecht, Blick nach vorne","Speer auf Ohrenhöhe halten während des Anlaufs","Kontrollierte Geschwindigkeit – Kontrolle vor Schnelligkeit"] },
+      { label:"Bogenspannung", merkmale:["Wurfarm lang nach hinten gestreckt","Körper dreht sich zur Seite – Brust öffnet sich","Hüfte führt die Bewegung an","Stützbein (links) setzt als feste Achse auf"] },
+      { label:"Abwurf (Peitschenprinzip)", merkmale:["Reihenfolge: Beine → Hüfte → Rumpf → Schulter → Arm","Hoher Ellenbogen beim Abwurf (kein Schleuderwurf)","Handgelenk schnappt am Ende durch (Finalschneller)","Abwurfwinkel ca. 30–40°"] },
+      { label:"Abbremsung", merkmale:["Wurfbein schwingt nach vorne (Abfangschritt)","Oberkörper bleibt über dem Stützbein","Kein Übertreten der Abwurflinie","Kontrolliertes Abbremsen des Schwungs"] }
+    ],
+    lernweg: { g:"Stehender Wurf → 3-Schritt-Anlauf → vollständiger Anlauf. Fokus auf Gesamtrhythmus, erst nach 10+ Versuchen Korrekturen einbauen.", a:"1. Griff üben · 2. Stehender Abwurf (hoher Ellenbogen) · 3. Bogenspannung aus dem Stand · 4. Impulsschritt + Abwurf · 5. Synthese: vollständiger Anlauf." }
+  },
+  drei: {
+    phases: [
+      { label:"Anlauf", merkmale:["Progressiver Anlauf (10–18 m), aufrechte Haltung","Aktiver Knieauftrieb, Blick nach vorne","Anlaufgeschwindigkeit kontrollierbar halten","Letzter Schritt: Absprungbein streckt aktiv durch"] },
+      { label:"Hop (gleiches Bein)", merkmale:["Absprung und Landung auf demselben Bein","Flacher Absprungwinkel ca. 20–25°","Freies Bein schwingt aktiv mit gebeugtem Knie vor","Gegenarmschwung zur Balance"] },
+      { label:"Step (anderes Bein)", merkmale:["Absprung vom Landungsbein (z.B. rechts) → Flug → Landung links","Schrittstellung in der Luft erkennbar","Aktives Aufsetzen unter dem Körperschwerpunkt","Kein seitliches Abkippen"] },
+      { label:"Jump (in die Grube)", merkmale:["Kraftvoller Absprung, Körper vollständig gestreckt","Arme schwingen nach vorne-oben","Hocke oder Hang (Angleichsprung) in der Luft","Beine strecken sich zur Landung nach vorne"] },
+      { label:"Landung", merkmale:["Beidbeinige Landung im Sandbett","Knie federn ein, kein steifes Landen","Gewicht nach vorne abfangen","Kein Rückwärtsfallen"] }
+    ],
+    lernweg: { g:"Hop-Step-Jump aus dem Stand ohne Anlauf → 3-Schritt-Anlauf → voller Anlauf. Beim ersten Versuch: Rhythmus zählen, nicht auf Weite achten.", a:"1. Einbeinsprünge (Hop-Vorbereitung) · 2. Hop-Step aus Stand · 3. Step-Jump in Grube · 4. Rhythmussicherung mit Partner · 5. Synthese mit kurzem Anlauf." }
+  },
+  hrd: {
+    phases: [
+      { label:"Zwischenlauf", merkmale:["Ungerade Schrittzahl zwischen Hürden (3 oder 5)","Aufrechte Haltung, aktiver Knieauftrieb","Gleiches Führungsbein bei allen Hürden","Blick voraus auf die nächste Hürde"] },
+      { label:"Absprung", merkmale:["Absprung ca. 1,5–2 m vor der Hürde","Kraftvoller Abdruck mit dem Absprungbein","Führungsbein schwingt gestreckt nach vorne-oben","Oberkörper lehnt leicht nach vorne, Gegenarm aktiv"] },
+      { label:"Führungsbein", merkmale:["Führungsbein streckt sich beim Übergang","Fuß wird aktiv nach unten gezogen","Nicht zu stark beugen – Schwerpunkt unnötig erhöht","Oberkörper bleibt aufrecht (kein Abtauchen)"] },
+      { label:"Nachziehbein", merkmale:["Knie dreht seitlich am Körper vorbei (eng + flach!)","Schulterachse bleibt parallel zur Laufbahn","Gegenarm streckt sich seitlich aus","Kein hohes Schwingen des Nachziehbeins"] },
+      { label:"Landung und weiter", merkmale:["Aktive Landung unter dem Körperschwerpunkt","Kein zu weites Vorauflanden (Bremswirkung)","Sofortiger Übergang in den Laufrhythmus","Blick auf nächste Hürde – Sprint bis zur Linie"] }
+    ],
+    lernweg: { g:"1 Hürde → 2 Hürden → 3–5 Hürden. Beim ersten Durchgang nur auf den Gesamtrhythmus achten, Einzelkorrekturen erst ab 2. Runde.", a:"1. Führungsbein-Hebung aus dem Stand · 2. Nachziehbein am Stander · 3. 1 Hürde aus dem Stand · 4. 1 Hürde mit 3-Schritt-Anlauf · 5. Mehrere Hürden im Rhythmus." }
+  }
+};
+
+function ns(tag, a) {
+  const e = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for (const [k,v] of Object.entries(a||{})) e.setAttribute(k,v);
+  return e;
+}
+function ln(x1,y1,x2,y2,col,sw) { return ns('line',{x1,y1,x2,y2,stroke:col||'#333','stroke-width':sw||2,'stroke-linecap':'round'}); }
+function ci(cx,cy,r,fill,stroke) { return ns('circle',{cx,cy,r,fill:fill||'none',stroke:stroke||'#333','stroke-width':1.5}); }
+function tx(x,y,t,col,size,anchor) { const e=ns('text',{x,y,'font-family':'system-ui,sans-serif','font-size':size||11,fill:col||'#666','text-anchor':anchor||'middle'}); e.textContent=t; return e; }
+
+function figWalk(x,y,p) {
+  const phases=[{aR:30,aL:-20,lR:20,lL:-15},{aR:-20,aL:30,lR:-15,lL:20},{aR:25,aL:-15,lR:15,lL:-10},{aR:-15,aL:25,lR:-10,lL:15}];
+  const c=phases[p%4]; const g=ns('g'); const col='#333';
+  const hy=y-65; g.appendChild(ci(x,hy,11,'none',col));
+  g.appendChild(ln(x,hy+11,x,y-28,col));
+  const r=Math.PI/180;
+  g.appendChild(ln(x,hy+16,x+20*Math.cos((c.aR-90)*r),hy+16+20*Math.sin((c.aR-90)*r),col));
+  g.appendChild(ln(x,hy+16,x-20*Math.cos((c.aL-90)*r),hy+16+20*Math.sin((c.aL-90)*r),col));
+  const lR=c.lR*r; const lL=c.lL*r;
+  g.appendChild(ln(x,y-28,x+16*Math.sin(lR),y-28+22*(1-Math.cos(lR)),col));
+  g.appendChild(ln(x+16*Math.sin(lR),y-28+22*(1-Math.cos(lR)),x+20*Math.sin(lR+0.3),y-10,col));
+  g.appendChild(ln(x,y-28,x-16*Math.sin(lL),y-28+22*(1-Math.cos(lL)),col));
+  g.appendChild(ln(x-16*Math.sin(lL),y-28+22*(1-Math.cos(lL)),x-20*Math.sin(lL+0.3),y-10,col));
+  return g;
+}
+
+function figCustom(x,y,{col,headOff,armR,armL,legR1,legR2,legL1,legL2,bodyLean}={}) {
+  const g=ns('g'); col=col||'#333';
+  const lean=bodyLean||0; const hy=y-65+headOff;
+  g.appendChild(ci(x+lean,hy,11,'none',col));
+  g.appendChild(ln(x+lean,hy+11,x,y-28,col));
+  armR&&g.appendChild(ln(x+lean,hy+16,...armR,col));
+  armL&&g.appendChild(ln(x+lean,hy+16,...armL,col));
+  legR1&&g.appendChild(ln(x,y-28,...legR1,col));
+  legR2&&legR1&&g.appendChild(ln(...legR1,...legR2,col));
+  legL1&&g.appendChild(ln(x,y-28,...legL1,col));
+  legL2&&legL1&&g.appendChild(ln(...legL1,...legL2,col));
+  return g;
+}
+
+const phases_draw = {
+  speer: [
+    (s)=>{
+      s.innerHTML='';
+      const g=ns('g');
+      g.appendChild(ci(200,145,11,'none','#333'));
+      g.appendChild(ln(200,156,200,182,'#333'));
+      g.appendChild(ln(200,161,218,150,'#333'));
+      g.appendChild(ln(200,161,182,150,'#333'));
+      g.appendChild(ln(200,182,210,210,'#333'));
+      g.appendChild(ln(200,182,190,210,'#333'));
+      s.appendChild(g);
+      s.appendChild(ln(215,148,360,143,'#2E75B6',3));
+      const tip=ns('polygon',{points:'360,143 350,139 350,147',fill:'#2E75B6'}); s.appendChild(tip);
+      s.appendChild(tx(288,132,'Speer auf Ohrenhöhe','#1F4E79',11));
+      s.appendChild(tx(205,170,'Zangengriff','#1F4E79',11));
+      s.appendChild(tx(230,155,'Handgelenk überstreckt','#833C00',10));
+    },
+    (s)=>{
+      s.innerHTML='';
+      [80,160,240,320].forEach((x,i)=>s.appendChild(figWalk(x,210,i)));
+      s.appendChild(ln(335,148,470,143,'#2E75B6',3));
+      s.appendChild(ns('polygon',{points:'470,143 460,139 460,147',fill:'#2E75B6'}));
+      s.appendChild(tx(200,228,'progressiver Anlauf →','#555',11));
+      s.appendChild(tx(200,200,'aufrechte Haltung','#375623',10));
+    },
+    (s)=>{
+      s.innerHTML='';
+      const g=ns('g');
+      g.appendChild(ci(340,145,11,'none','#333'));
+      g.appendChild(ln(340,156,345,182,'#333'));
+      g.appendChild(ln(343,161,310,148,'#333',2));
+      g.appendChild(ln(343,161,355,175,'#333'));
+      g.appendChild(ln(345,182,358,210,'#333'));
+      g.appendChild(ln(345,182,328,210,'#333'));
+      s.appendChild(g);
+      s.appendChild(ln(295,147,390,142,'#2E75B6',3));
+      s.appendChild(ns('polygon',{points:'390,142 380,138 380,146',fill:'#2E75B6'}));
+      s.appendChild(tx(295,132,'Arm lang gestreckt','#833C00',11));
+      s.appendChild(tx(370,130,'Brust öffnet sich','#375623',11));
+      const arc=ns('path',{d:'M 330 165 Q 350 148 368 162',fill:'none',stroke:'#C55A11','stroke-width':2,'stroke-dasharray':'4,2'}); s.appendChild(arc);
+      s.appendChild(tx(350,180,'Bogenspannung','#C55A11',11));
+    },
+    (s)=>{
+      s.innerHTML='';
+      const g=ns('g');
+      g.appendChild(ci(300,145,11,'none','#333'));
+      g.appendChild(ln(300,156,305,182,'#333'));
+      g.appendChild(ln(302,161,330,138,'#333',2));
+      g.appendChild(ln(302,161,282,170,'#333'));
+      g.appendChild(ln(305,182,320,210,'#333'));
+      g.appendChild(ln(305,182,288,208,'#333'));
+      s.appendChild(g);
+      const traj=ns('path',{d:'M 336 135 Q 440 60 580 190',fill:'none',stroke:'#2E75B6','stroke-width':2,'stroke-dasharray':'7,4'}); s.appendChild(traj);
+      s.appendChild(tx(460,55,'Flugbahn (30–40°)','#1F4E79',11));
+      s.appendChild(tx(320,128,'Finalschneller','#833C00',11));
+      s.appendChild(tx(310,170,'Peitschenprinzip','#C55A11',10));
+    },
+    (s)=>{
+      s.innerHTML='';
+      const g=ns('g');
+      g.appendChild(ci(290,148,11,'none','#333'));
+      g.appendChild(ln(290,159,295,183,'#333'));
+      g.appendChild(ln(293,164,270,175,'#333'));
+      g.appendChild(ln(293,164,312,172,'#333'));
+      g.appendChild(ln(295,183,312,210,'#333'));
+      g.appendChild(ln(295,183,278,206,'#333'));
+      s.appendChild(g);
+      const abwurf=ns('line',{x1:330,y1:175,x2:330,y2:215,stroke:'#CC0000','stroke-width':2,'stroke-dasharray':'5,3'}); s.appendChild(abwurf);
+      s.appendChild(tx(355,195,'Abwurflinie','#CC0000',11));
+      s.appendChild(tx(278,130,'Abfangschritt','#375623',11));
+    }
+  ],
+  drei: [
+    (s)=>{
+      s.innerHTML='';
+      [60,140,220,300].forEach((x,i)=>s.appendChild(figWalk(x,210,i)));
+      s.appendChild(tx(180,232,'progressiver Anlauf →','#555',11));
+      s.appendChild(tx(180,185,'aufrechte Haltung','#375623',11));
+    },
+    (s)=>{
+      s.innerHTML='';
+      const g=ns('g');
+      g.appendChild(ci(170,140,11,'none','#375623'));
+      g.appendChild(ln(170,151,175,178,'#375623'));
+      g.appendChild(ln(173,156,148,145,'#375623',2));
+      g.appendChild(ln(173,156,192,152,'#375623'));
+      g.appendChild(ln(175,178,195,205,'#375623'));
+      g.appendChild(ln(175,178,158,200,'#375623'));
+      s.appendChild(g);
+      const arc=ns('path',{d:'M 175 195 Q 260 120 345 195',fill:'none',stroke:'#375623','stroke-width':2,'stroke-dasharray':'5,3'}); s.appendChild(arc);
+      const tip=ns('polygon',{points:'345,195 336,189 338,198',fill:'#375623'}); s.appendChild(tip);
+      s.appendChild(tx(170,122,'Absprung: rechtes Bein','#375623',11));
+      s.appendChild(tx(345,188,'Landung: rechtes Bein','#375623',11));
+      s.appendChild(tx(258,108,'flacher Winkel 20–25°!','#375623',11));
+    },
+    (s)=>{
+      s.innerHTML='';
+      const g=ns('g');
+      g.appendChild(ci(220,140,11,'none','#1F4E79'));
+      g.appendChild(ln(220,151,228,178,'#1F4E79'));
+      g.appendChild(ln(225,156,200,148,'#1F4E79',2));
+      g.appendChild(ln(225,156,244,152,'#1F4E79'));
+      g.appendChild(ln(228,178,248,205,'#1F4E79'));
+      g.appendChild(ln(228,178,210,200,'#1F4E79'));
+      s.appendChild(g);
+      const arc=ns('path',{d:'M 228 195 Q 310 110 395 195',fill:'none',stroke:'#1F4E79','stroke-width':2,'stroke-dasharray':'5,3'}); s.appendChild(arc);
+      const tip=ns('polygon',{points:'395,195 386,189 388,198',fill:'#1F4E79'}); s.appendChild(tip);
+      s.appendChild(tx(222,122,'Absprung: rechts','#375623',11));
+      s.appendChild(tx(395,188,'Landung: links','#1F4E79',11));
+      s.appendChild(tx(312,98,'Schrittstellung in der Luft','#1F4E79',11));
+    },
+    (s)=>{
+      s.innerHTML='';
+      const g=ns('g');
+      g.appendChild(ci(280,132,11,'none','#C55A11'));
+      g.appendChild(ln(280,143,282,172,'#C55A11'));
+      g.appendChild(ln(281,148,255,138,'#C55A11',2));
+      g.appendChild(ln(281,148,305,140,'#C55A11',2));
+      g.appendChild(ln(282,172,302,200,'#C55A11'));
+      g.appendChild(ln(282,172,262,198,'#C55A11'));
+      s.appendChild(g);
+      const arc=ns('path',{d:'M 295 192 Q 420 70 545 196',fill:'none',stroke:'#C55A11','stroke-width':2,'stroke-dasharray':'6,4'}); s.appendChild(arc);
+      const tip=ns('polygon',{points:'545,196 536,190 538,199',fill:'#C55A11'}); s.appendChild(tip);
+      s.appendChild(tx(418,60,'maximale Höhe!','#C55A11',11));
+      s.appendChild(tx(280,118,'kräftiger Absprung','#375623',11));
+      const sand=ns('rect',{x:520,y:205,width:150,height:8,rx:2,fill:'#D4B483',opacity:0.6}); s.appendChild(sand);
+    },
+    (s)=>{
+      s.innerHTML='';
+      const sand=ns('rect',{x:420,y:205,width:240,height:8,rx:2,fill:'#D4B483',opacity:0.6}); s.appendChild(sand);
+      const g=ns('g');
+      g.appendChild(ci(520,158,11,'none','#333'));
+      g.appendChild(ln(520,169,520,183,'#333'));
+      g.appendChild(ln(520,174,498,183,'#333',2));
+      g.appendChild(ln(520,174,542,183,'#333',2));
+      g.appendChild(ln(520,183,538,210,'#333'));
+      g.appendChild(ln(520,183,502,210,'#333'));
+      s.appendChild(g);
+      s.appendChild(tx(520,140,'Knie federn ein','#375623',11));
+      s.appendChild(tx(520,192,'Gewicht nach vorne!','#1F4E79',11));
+    }
+  ],
+  hrd: [
+    (s)=>{
+      s.innerHTML='';
+      [80,150,220].forEach((x,i)=>s.appendChild(figWalk(x,210,i)));
+      s.appendChild(tx(150,232,'3 oder 5 Schritte (ungerade!)','#833C00',11));
+      const brace=ns('line',{x1:80,y1:220,x2:220,y2:220,stroke:'#833C00','stroke-width':1.5,'stroke-dasharray':'3,2'}); s.appendChild(brace);
+    },
+    (s)=>{
+      s.innerHTML='';
+      const g=ns('g');
+      g.appendChild(ci(220,142,11,'none','#333'));
+      g.appendChild(ln(220,153,225,178,'#333'));
+      g.appendChild(ln(223,158,200,148,'#333',2));
+      g.appendChild(ln(223,158,240,150,'#333'));
+      g.appendChild(ln(225,178,245,206,'#333'));
+      g.appendChild(ln(225,178,208,202,'#333'));
+      s.appendChild(g);
+      const dist=ns('line',{x1:238,y1:220,x2:308,y2:220,stroke:'#C55A11','stroke-width':1.5,'stroke-dasharray':'3,2'}); s.appendChild(dist);
+      s.appendChild(tx(273,232,'1,5–2 m','#C55A11',11));
+      s.appendChild(tx(220,124,'kraftvoller Abdruck','#375623',11));
+    },
+    (s)=>{
+      s.innerHTML='';
+      const g=ns('g');
+      g.appendChild(ci(290,138,11,'none','#333'));
+      g.appendChild(ln(290,149,294,178,'#333'));
+      g.appendChild(ln(292,154,268,144,'#333',2));
+      g.appendChild(ln(292,154,312,148,'#333'));
+      g.appendChild(ln(294,178,325,168,'#333'));
+      g.appendChild(ln(325,168,332,175,'#333'));
+      g.appendChild(ln(294,178,274,202,'#333'));
+      g.appendChild(ln(274,202,268,196,'#333'));
+      s.appendChild(g);
+      s.appendChild(tx(330,155,'gestreckt über Hürde','#1F4E79',11));
+      const arr=ns('path',{d:'M 340 168 L 340 185',fill:'none',stroke:'#C55A11','stroke-width':2}); s.appendChild(arr);
+      s.appendChild(tx(370,178,'Fuß runterziehen','#833C00',11));
+    },
+    (s)=>{
+      s.innerHTML='';
+      const g=ns('g');
+      g.appendChild(ci(320,140,11,'none','#333'));
+      g.appendChild(ln(320,151,325,178,'#333'));
+      g.appendChild(ln(323,156,345,145,'#333',2));
+      g.appendChild(ln(323,156,300,150,'#333'));
+      g.appendChild(ln(325,178,348,200,'#333'));
+      g.appendChild(ln(325,178,308,198,'#333'));
+      s.appendChild(g);
+      const arc=ns('path',{d:'M 305 165 Q 325 148 345 162',fill:'none',stroke:'#CC0000','stroke-width':2}); s.appendChild(arc);
+      s.appendChild(tx(325,138,'flach + eng am Körper!','#CC0000',11));
+      s.appendChild(tx(325,155,'kein Hochwingen','#CC0000',10));
+      s.appendChild(tx(370,148,'Gegenarm seitlich','#1F4E79',10));
+    },
+    (s)=>{
+      s.innerHTML='';
+      const g=ns('g');
+      g.appendChild(ci(270,148,11,'none','#333'));
+      g.appendChild(ln(270,159,272,183,'#333'));
+      g.appendChild(ln(271,164,250,173,'#333',2));
+      g.appendChild(ln(271,164,292,172,'#333'));
+      g.appendChild(ln(272,183,288,210,'#333'));
+      g.appendChild(ln(272,183,256,208,'#333'));
+      s.appendChild(g);
+      const arr=ns('line',{x1:300,y1:190,x2:420,y2:190,stroke:'#375623','stroke-width':1.5,'stroke-dasharray':'4,3'}); s.appendChild(arr);
+      const tip=ns('polygon',{points:'420,190 410,185 410,195',fill:'#375623'}); s.appendChild(tip);
+      s.appendChild(tx(360,182,'3 Schritte → nächste Hürde','#375623',11));
+      s.appendChild(tx(268,132,'unter dem Körper landen','#1F4E79',11));
+    }
+  ]
+};
+
+const state={speer:{phase:0,playing:false,interval:null,speed:2},drei:{phase:0,playing:false,interval:null,speed:2},hrd:{phase:0,playing:false,interval:null,speed:2}};
+
+function renderPhase(d){
+  const ph=DATA[d].phases[state[d].phase];
+  const fig=document.getElementById(`${d}-fig`);
+  if(fig){fig.innerHTML=''; if(phases_draw[d]&&phases_draw[d][state[d].phase]) phases_draw[d][state[d].phase](fig);}
+  const lbl=document.getElementById(`${d}-phase-label`); if(lbl) lbl.textContent=`Phase ${state[d].phase+1}: ${ph.label}`;
+  const mlbl=document.getElementById(`lbl-${d}`); if(mlbl) mlbl.textContent=`Phase ${state[d].phase+1} von ${DATA[d].phases.length} – ${ph.label}`;
+  const ti=document.getElementById(`info-title-${d}`); if(ti) ti.textContent=ph.label;
+  const ml=document.getElementById(`info-merkmale-${d}`); if(ml){ml.innerHTML=''; ph.merkmale.forEach(m=>{const li=document.createElement('li');li.textContent=m;ml.appendChild(li);});}
+  const pg=document.getElementById(`prog-${d}`); if(pg) pg.style.width=`${((state[d].phase+1)/DATA[d].phases.length)*100}%`;
+  document.querySelectorAll(`#panel-${d} .phase-btn`).forEach((b,i)=>b.classList.toggle('active',i===state[d].phase));
+}
+
+function setPhase(d,i){state[d].phase=i;renderPhase(d);}
+
+function togglePlay(d){
+  const st=state[d]; const btn=document.getElementById(`btn-${d}`);
+  if(st.playing){clearInterval(st.interval);st.playing=false;btn.innerHTML='&#9654;';}
+  else{
+    st.playing=true;btn.innerHTML='&#9646;&#9646;';
+    const delays=[2200,1600,1200,900,650];
+    st.interval=setInterval(()=>{st.phase=(st.phase+1)%DATA[d].phases.length;renderPhase(d);},delays[st.speed-1]||1500);
+  }
+}
+
+function setSpeed(d,v){
+  state[d].speed=parseInt(v);
+  if(state[d].playing){clearInterval(state[d].interval);state[d].playing=false;document.getElementById(`btn-${d}`).innerHTML='&#9654;';togglePlay(d);}
+}
+
+function switchDisziplin(d){
+  document.querySelectorAll('.disziplin-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(`panel-${d}`).classList.add('active');
+  document.querySelector(`.tab-btn.${d}`).classList.add('active');
+  renderPhase(d);
+}
+
+function setLernweg(d,type,btn){
+  document.getElementById(`panel-${d}`).querySelectorAll('.lw-btn').forEach(b=>{b.classList.remove('active-g','active-a');});
+  btn.classList.add(type==='g'?'active-g':'active-a');
+  document.getElementById(`lw-${d}`).textContent=DATA[d].lernweg[type];
+}
+
+['speer','drei','hrd'].forEach(d=>renderPhase(d));
+</script>
+</body>
+</html>
