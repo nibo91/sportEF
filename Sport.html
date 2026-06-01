@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UV 6 – Bildreihen: Speerwurf | Dreisprung | Hürdenlauf</title>
+<style>
+  :root {
+    --blue: #1F4E79; --green: #375623; --red: #833C00;
+    --blue-l: #DEEAF1; --green-l: #E2EFDA; --red-l: #FCE4D6;
+    --bg: #ffffff; --bg2: #f5f5f5; --txt: #1a1a1a; --txt2: #555;
+    --bd: #ddd; --radius: 8px; --font: system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #1a1a1a; --bg2: #262626; --txt: #e8e8e8; --txt2: #aaa; --bd: #444; }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--bg); color: var(--txt); padding: 20px; max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 22px; font-weight: 500; margin-bottom: 4px; }
+  .subtitle { font-size: 14px; color: var(--txt2); margin-bottom: 20px; }
+  .header-bar { display: flex; align-items: baseline; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid var(--bd); padding-bottom: 12px; }
+  .badge { font-size: 11px; padding: 3px 8px; border-radius: 20px; background: var(--bg2); color: var(--txt2); border: 1px solid var(--bd); }
+  
+  .disziplin-tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+  .tab-btn { flex: 1; padding: 10px; border: 1px solid var(--bd); background: var(--bg2); border-radius: var(--radius); font-size: 14px; font-weight: 500; cursor: pointer; color: var(--txt2); transition: all 0.15s; }
+  .tab-btn.active { color: #fff; border-color: transparent; }
+  .tab-btn.speer.active { background: var(--blue); }
+  .tab-btn.drei.active { background: var(--green); }
+  .tab-btn.hrd.active { background: var(--red); }
+
+  .disziplin-panel { display: none; }
+  .disziplin-panel.active { display: block; }
+
+  .phase-strip { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 12px; }
+  .phase-btn { padding: 5px 12px; font-size: 12px; border-radius: 20px; border: 1px solid var(--bd); background: var(--bg2); cursor: pointer; color: var(--txt2); transition: all 0.15s; }
+  .phase-btn.active { color: #fff; border-color: transparent; }
+  .speer .phase-btn.active { background: var(--blue); }
+  .drei .phase-btn.active { background: var(--green); }
+  .hrd .phase-btn.active { background: var(--red); }
+
+  .animation-area { background: var(--bg2); border-radius: 12px; border: 1px solid var(--bd); overflow: hidden; margin-bottom: 12px; }
+  .image-container { width: 100%; padding: 20px; display: flex; justify-content: center; background: white; }
+  .sequence-img { max-width: 100%; height: auto; display: block; }
+
+  .progress-bar { height: 3px; background: var(--bd); }
+  .progress-fill { height: 100%; transition: width 0.2s; }
+  .speer .progress-fill { background: var(--blue); }
+  .drei .progress-fill { background: var(--green); }
+  .hrd .progress-fill { background: var(--red); }
+
+  .play-controls { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-top: 1px solid var(--bd); background: var(--bg); }
+  .phase-label { font-size: 13px; color: var(--txt2); flex: 1; }
+
+  .info-box { background: var(--bg); border: 1px solid var(--bd); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; min-height: 120px; }
+  .info-title { font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+  .merkmale { list-style: none; }
+  .merkmale li { font-size: 13px; color: var(--txt2); padding: 3px 0; }
+  .merkmale li::before { content: "✓ "; color: #22863a; font-weight: 500; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .box { background: var(--bg); border: 1px solid var(--bd); border-radius: var(--radius); padding: 12px 14px; }
+  .box-title { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; color: var(--txt2); margin-bottom: 10px; }
+  
+  .gelaende-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .g-item { background: var(--bg2); border-radius: 6px; padding: 8px; font-size: 12px; text-align: center; border: 1px solid var(--bd); line-height: 1.3; }
+  .g-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+
+  .lw-toggle { display: flex; gap: 6px; margin-bottom: 8px; }
+  .lw-btn { padding: 5px 12px; font-size: 12px; border-radius: 20px; border: 1px solid var(--bd); cursor: pointer; background: var(--bg2); color: var(--txt2); }
+  .lw-btn.active-g { background: var(--green-l); color: var(--green); border-color: var(--green); }
+  .lw-btn.active-a { background: var(--blue-l); color: var(--blue); border-color: var(--blue); }
+  .lw-info { font-size: 13px; color: var(--txt2); padding: 10px 12px; background: var(--bg2); border-radius: var(--radius); line-height: 1.5; }
+
+  .print-note { font-size: 12px; color: var(--txt2); background: var(--bg2); border: 1px solid var(--bd); border-radius: var(--radius); padding: 10px 14px; margin-top: 20px; }
+
+  @media print {
+    .disziplin-tabs, .phase-strip, .play-controls, .lw-toggle, .print-note { display: none !important; }
+    .disziplin-panel { display: block !important; page-break-after: always; }
+    body { padding: 0; max-width: 100%; }
+  }
+  @media (max-width: 600px) {
+    .two-col { grid-template-columns: 1fr; }
+    .gelaende-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header-bar">
+  <h1>Bildreihen – UV 6 Leichtathletik</h1>
+  <span class="badge">EF | BF/SB 3</span>
+  <span class="badge">Statisch / Interaktiv</span>
+</div>
+
+<div class="disziplin-tabs">
+  <button class="tab-btn speer active" onclick="switchDisziplin('speer')">Speerwurf</button>
+  <button class="tab-btn drei" onclick="switchDisziplin('drei')">Dreisprung</button>
+  <button class="tab-btn hrd" onclick="switchDisziplin('hrd')">Hürdenlauf</button>
+</div>
+
+<!-- SPEERWURF -->
+<div id="panel-speer" class="disziplin-panel speer active">
+  <div class="phase-strip">
+    <button class="phase-btn active" onclick="setPhase('speer',0)">1. Griff &amp; Haltung</button>
+    <button class="phase-btn" onclick="setPhase('speer',1)">2. Anlauf</button>
+    <button class="phase-btn" onclick="setPhase('speer',2)">3. Bogenspannung</button>
+    <button class="phase-btn" onclick="setPhase('speer',3)">4. Abwurf</button>
+    <button class="phase-btn" onclick="setPhase('speer',4)">5. Abbremsung</button>
+  </div>
+  <div class="animation-area">
+    <div class="progress-bar"><div class="progress-fill speer" id="prog-speer" style="width:20%"></div></div>
+    <div class="image-container">
+      <img src="Speerwurf.png" alt="Bildreihe Speerwurf" class="sequence-img">
+    </div>
+    <div class="play-controls">
+      <span class="phase-label" id="lbl-speer">Phase 1 von 5</span>
+    </div>
+  </div>
+  <div class="info-box">
+    <div class="info-title" id="info-title-speer">Griff und Haltung</div>
+    <ul class="merkmale" id="info-merkmale-speer"></ul>
+  </div>
+  <div class="two-col">
+    <div class="box">
+      <div class="box-title">Geländehilfen</div>
+      <div class="gelaende-grid">
+        <div class="g-item"><span class="g-icon">📏</span>Abwurflinie mit Absperrband</div>
+        <div class="g-item"><span class="g-icon">🦶</span>Fußspuren für Impulsschritt</div>
+        <div class="g-item"><span class="g-icon">🎯</span>Zielzone mit Kreide/Kegel</div>
+        <div class="g-item"><span class="g-icon">🖼️</span>Bildreihe am Stander</div>
+        <div class="g-item"><span class="g-icon">🔔</span>Klatschen beim Abwurf</div>
+        <div class="g-item"><span class="g-icon">🪄</span>Softspeer als Einstieg</div>
+      </div>
+    </div>
+    <div class="box">
+      <div class="box-title">Lernweg</div>
+      <div class="lw-toggle">
+        <button class="lw-btn active-g" onclick="setLernweg('speer','g',this)">Ganzheitsmethode</button>
+        <button class="lw-btn" onclick="setLernweg('speer','a',this)">Analytisch</button>
+      </div>
+      <div class="lw-info" id="lw-speer">Stehender Wurf → 3-Schritt-Anlauf → vollständiger Anlauf. Fokus auf Gesamtrhythmus.</div>
+    </div>
+  </div>
+</div>
+
+<!-- DREISPRUNG -->
+<div id="panel-drei" class="disziplin-panel drei">
+  <div class="phase-strip">
+    <button class="phase-btn active" onclick="setPhase('drei',0)">1. Anlauf</button>
+    <button class="phase-btn" onclick="setPhase('drei',1)">2. Hop</button>
+    <button class="phase-btn" onclick="setPhase('drei',2)">3. Step</button>
+    <button class="phase-btn" onclick="setPhase('drei',3)">4. Jump</button>
+    <button class="phase-btn" onclick="setPhase('drei',4)">5. Landung</button>
+  </div>
+  <div class="animation-area">
+    <div class="progress-bar"><div class="progress-fill drei" id="prog-drei" style="width:20%"></div></div>
+    <div class="image-container">
+      <img src="Dreisprung.png" alt="Bildreihe Dreisprung" class="sequence-img">
+    </div>
+    <div class="play-controls">
+      <span class="phase-label" id="lbl-drei">Phase 1 von 5</span>
+    </div>
+  </div>
+  <div class="info-box">
+    <div class="info-title" id="info-title-drei">Anlauf</div>
+    <ul class="merkmale" id="info-merkmale-drei"></ul>
+  </div>
+  <div class="two-col">
+    <div class="box">
+      <div class="box-title">Geländehilfen</div>
+      <div class="gelaende-grid">
+        <div class="g-item"><span class="g-icon">🧱</span>Zonenmarkierung (Farbe)</div>
+        <div class="g-item"><span class="g-icon">🎵</span>Rhythmus klatschen</div>
+        <div class="g-item"><span class="g-icon">👣</span>Reifen für die Landezonen</div>
+        <div class="g-item"><span class="g-icon">📏</span>Maßband neben der Grube</div>
+        <div class="g-item"><span class="g-icon">🎥</span>Video-Feedback</div>
+        <div class="g-item"><span class="g-icon">📦</span>Kasten für erhöhten Step</div>
+      </div>
+    </div>
+    <div class="box">
+      <div class="box-title">Lernweg</div>
+      <div class="lw-toggle">
+        <button class="lw-btn active-g" onclick="setLernweg('drei','g',this)">Ganzheitsmethode</button>
+        <button class="lw-btn" onclick="setLernweg('drei','a',this)">Analytisch</button>
+      </div>
+      <div class="lw-info" id="lw-drei">Hop-Step-Jump aus dem Stand → 3-Schritt-Anlauf → voller Anlauf.</div>
+    </div>
+  </div>
+</div>
+
+<!-- HÜRDENLAUF -->
+<div id="panel-hrd" class="disziplin-panel hrd">
+  <div class="phase-strip">
+    <button class="phase-btn active" onclick="setPhase('hrd',0)">1. Zwischenlauf</button>
+    <button class="phase-btn" onclick="setPhase('hrd',1)">2. Absprung</button>
+    <button class="phase-btn" onclick="setPhase('hrd',2)">3. Führungsbein</button>
+    <button class="phase-btn" onclick="setPhase('hrd',3)">4. Nachziehbein</button>
+    <button class="phase-btn" onclick="setPhase('hrd',4)">5. Landung</button>
+  </div>
+  <div class="animation-area">
+    <div class="progress-bar"><div class="progress-fill hrd" id="prog-hrd" style="width:20%"></div></div>
+    <div class="image-container">
+      <img src="Hürdensprint.png" alt="Bildreihe Hürdenlauf" class="sequence-img">
+    </div>
+    <div class="play-controls">
+      <span class="phase-label" id="lbl-hrd">Phase 1 von 5</span>
+    </div>
+  </div>
+  <div class="info-box">
+    <div class="info-title" id="info-title-hrd">Zwischenlauf</div>
+    <ul class="merkmale" id="info-merkmale-hrd"></ul>
+  </div>
+  <div class="two-col">
+    <div class="box">
+      <div class="box-title">Geländehilfen</div>
+      <div class="gelaende-grid">
+        <div class="g-item"><span class="g-icon">↕️</span>Höhe stufenweise erhöhen</div>
+        <div class="g-item"><span class="g-icon">🦵</span>Gummiband statt Hürde</div>
+        <div class="g-item"><span class="g-icon">🔢</span>Schritte laut mitzählen</div>
+        <div class="g-item"><span class="g-icon">📍</span>Absprungmarkierung</div>
+        <div class="g-item"><span class="g-icon">🤝</span>Partnerbeobachtung</div>
+        <div class="g-item"><span class="g-icon">🖼️</span>Bildreihe Nachziehbein</div>
+      </div>
+    </div>
+    <div class="box">
+      <div class="box-title">Lernweg</div>
+      <div class="lw-toggle">
+        <button class="lw-btn active-g" onclick="setLernweg('hrd','g',this)">Ganzheitsmethode</button>
+        <button class="lw-btn" onclick="setLernweg('hrd','a',this)">Analytisch</button>
+      </div>
+      <div class="lw-info" id="lw-hrd">1 Hürde → Rhythmus sichern → mehrere Hürden.</div>
+    </div>
+  </div>
+</div>
+
+<div class="print-note">
+  <strong>Hinweis:</strong> Nutzen Sie die Phase-Buttons oben, um die Technikmerkmale der einzelnen Abschnitte einzublenden. Die Bildreihe zeigt den Gesamtablauf.
+</div>
+
+<script>
+const DATA = {
+  speer: {
+    phases: [
+      { label:"Griff und Haltung", merkmale:["Zangengriff hinter dem Wickel","Handgelenk leicht überstreckt","Speer auf Ohrenhöhe, Spitze leicht nach unten","Ellenbogen zeigt nach außen"] },
+      { label:"Anlauf (5–7 Schritte)", merkmale:["Steigerungslauf, Blick nach vorne","Speer ruhig auf Ohrenhöhe halten","Kontrollierte Geschwindigkeit"] },
+      { label:"Bogenspannung", merkmale:["Wurfarm lang nach hinten","Körper dreht sich zur Seite","Hüfte führt die Bewegung an","Stützbein als feste Achse"] },
+      { label:"Abwurf", merkmale:["Peitschenprinzip: Beine-Hüfte-Rumpf-Arm","Hoher Ellenbogen beim Abwurf","Handgelenk schnappt am Ende","Abwurfwinkel ca. 30-40°"] },
+      { label:"Abbremsung", merkmale:["Wurfbein fängt Schwung ab","Oberkörper stabilisieren","Kein Übertreten der Linie"] }
+    ],
+    lernweg: { g:"Stehender Wurf → 3-Schritt-Anlauf → vollständiger Anlauf. Fokus auf Gesamtrhythmus.", a:"1. Griff · 2. Standwurf · 3. Bogenspannung · 4. Impulsschritt · 5. Gesamtbewegung." }
+  },
+  drei: {
+    phases: [
+      { label:"Anlauf", merkmale:["Progressive Beschleunigung","Aufrechte Haltung, Knieauftrieb","Letzter Schritt: Aktives Durchstrecken"] },
+      { label:"Hop (gleiches Bein)", merkmale:["Absprung/Landung auf demselben Bein","Flacher Flugwinkel","Freies Bein schwingt aktiv vor"] },
+      { label:"Step (anderes Bein)", merkmale:["Sprung auf das andere Bein","Schrittstellung in der Luft halten","Aktives Aufsetzen unterm Schwerpunkt"] },
+      { label:"Jump (in die Grube)", merkmale:["Kraftvoller Absprung vom Step-Bein","Arme schwingen nach vorne-oben","Beine zur Landung weit vorstrecken"] },
+      { label:"Landung", merkmale:["Beidbeinige Landung, Knie federn","Gewicht nach vorne abfangen","Kein Rückwärtsfallen"] }
+    ],
+    lernweg: { g:"Hop-Step-Jump aus dem Stand → 3-Schritt-Anlauf → voller Anlauf.", a:"1. Einbeinsprünge · 2. Hop-Step Kombi · 3. Step-Jump in Sand · 4. Rhythmus-Schulung." }
+  },
+  hrd: {
+    phases: [
+      { label:"Zwischenlauf", merkmale:["Hoher Knieansatz, Fußballenlauf","Konstanter 3-Schritt-Rhythmus","Oberkörper leicht nach vorne"] },
+      { label:"Absprung", merkmale:["Absprung 1.50m - 2m vor der Hürde","Aktives Nach-Vorne-Oben-Bringen des Knie","Körperschwerpunkt flach halten"] },
+      { label:"Führungsbein", merkmale:["Fußspitze hochziehen","Bein fast strecken über der Hürde","Gegenarm unterstützt Balance"] },
+      { label:"Nachziehbein", merkmale:["Knie aktiv nach außen-oben führen","Unterschenkel parallel zur Hürde","Schnelles Absetzen nach unten"] },
+      { label:"Landung & weiter", merkmale:["Landung auf dem Fußballen","Sofortiger Übergang in den Sprint","Blick zur nächsten Hürde"] }
+    ],
+    lernweg: { g:"Hürdenlauf über 1-3 niedrige Hindernisse. Fokus auf Rhythmus.", a:"1. Führungsbein-Übung · 2. Nachziehbein seitlich · 3. Hürden-Überlaufen aus Stand." }
+  }
+};
+
+let state = {
+  speer: { phase: 0 },
+  drei: { phase: 0 },
+  hrd: { phase: 0 }
+};
+
+function renderPhase(d) {
+  const st = state[d];
+  const ph = DATA[d].phases[st.phase];
+  
+  // Update Text
+  document.getElementById(`lbl-${d}`).textContent = `Phase ${st.phase + 1} von ${DATA[d].phases.length}`;
+  document.getElementById(`info-title-${d}`).textContent = ph.label;
+  
+  // Update Buttons
+  const panel = document.getElementById(`panel-${d}`);
+  panel.querySelectorAll('.phase-btn').forEach((btn, idx) => {
+    btn.classList.toggle('active', idx === st.phase);
+  });
+  
+  // Update Progress
+  const prog = document.getElementById(`prog-${d}`);
+  prog.style.width = ((st.phase + 1) / DATA[d].phases.length * 100) + '%';
+  
+  // Update Merkmale
+  const list = document.getElementById(`info-merkmale-${d}`);
+  list.innerHTML = ph.merkmale.map(m => `<li>${m}</li>`).join('');
+}
+
+function setPhase(d, i) {
+  state[d].phase = i;
+  renderPhase(d);
+}
+
+function switchDisziplin(d) {
+  document.querySelectorAll('.disziplin-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`panel-${d}`).classList.add('active');
+  document.querySelector(`.tab-btn.${d}`).classList.add('active');
+  renderPhase(d);
+}
+
+function setLernweg(d, type, btn) {
+  const panel = document.getElementById(`panel-${d}`);
+  panel.querySelectorAll('.lw-btn').forEach(b => b.classList.remove('active-g', 'active-a'));
+  btn.classList.add(type === 'g' ? 'active-g' : 'active-a');
+  document.getElementById(`lw-${d}`).textContent = DATA[d].lernweg[type];
+}
+
+// Initialer Aufruf
+['speer', 'drei', 'hrd'].forEach(d => renderPhase(d));
+</script>
+
+</body>
+</html>
